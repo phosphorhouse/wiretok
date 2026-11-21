@@ -33,12 +33,11 @@ No cloud sync. No binary patches. Zero npm runtime packages.
   <sub>Floating always-on-top Mini-HUD (<code>Document Picture-in-Picture</code> / <code>/?view=hud</code>) with live <code>Ctx %</code>, <code>/compact</code> headroom, and 1-click copy.</sub>
 </p>
 
-<details>
-<summary>9-second walkthrough (context headroom, spend history &amp; SSE wire check)</summary>
 <p align="center">
-  <img src="./docs/assets/wiretok-demo.gif" alt="Wiretok 9-second walkthrough showing context fill, spend history, and wire-level SSE model check" width="100%" />
+  <img src="./docs/assets/wiretok-demo.gif" alt="Wiretok 9-second walkthrough showing context headroom, spend history, and wire-level SSE model check" width="100%" />
+  <br />
+  <sub>9-second walkthrough: context headroom, spend &amp; cache history, and SSE wire check (<a href="./docs/assets/wiretok-demo.mp4">MP4 with audio</a>).</sub>
 </p>
-</details>
 
 ---
 
