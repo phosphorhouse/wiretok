@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+coverage/
+
+# Local runtime databases, logs & captures (contain private session telemetry)
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
+data/*.jsonl
+data/qa-shots/
+!data/.gitkeep
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# OS & binary shortcuts
+*.lnk
+.DS_Store
+Thumbs.db
+desktop.ini

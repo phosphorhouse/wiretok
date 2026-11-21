@@ -1,0 +1,6 @@
+{
+  "name": "wiretok",
+  "version": "0.2.0",
+  "description": "Update-proof, zero-ToS context, token, cache, TTFT/TPOT speed & multi-protocol SSE model forensics tracker",
+  "icon": "./assets/logo.svg"
+}

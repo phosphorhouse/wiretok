@@ -1,0 +1,20 @@
+{
+  "name": "wiretok",
+  "version": "0.2.0",
+  "license": "MIT",
+  "description": "Update-proof, zero-ToS-violation context, token, cache, per-request cost & multi-protocol SSE model fingerprint forensics tracker for Antigravity 2.0, OmniRoute, 9Router, Claude Code, Codex, and OpenCode.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "wiretok": "./bin/wiretok.mjs"
+  },
+  "scripts": {
+    "start": "node --no-warnings ./src/server/server.mjs",
+    "sync": "node --no-warnings ./bin/wiretok.mjs sync --all",
+    "sync-models": "node --no-warnings ./bin/wiretok.mjs sync-models",
+    "test": "node --no-warnings ./test/run-tests.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

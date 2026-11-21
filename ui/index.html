@@ -1,0 +1,587 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#111618">
+  <title>Wiretok — Context, Token &amp; Cost Console</title>
+  <meta name="description" content="Local-first token, input cache, context pressure, TTFT/TPOT speed, per-request cost, and SSE fingerprint console for Antigravity, OmniRoute, 9Router, Claude Code, Codex, and OpenCode.">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="tnum" style="font-variant-numeric: tabular-nums;">
+<a class="skip" href="#main" data-i18n="skip.main">Skip to main content</a>
+
+<!-- ===================== FLOATING TURBO MINI-HUD CAPSULE (/?view=hud) ===================== -->
+<aside class="hud-capsule" id="hud-root" aria-label="Wiretok Turbo Mini-HUD" hidden></aside>
+
+<div class="app" id="app-shell">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brandrow">
+        <div class="brand min-w-0">
+          <img src="/assets/emblem.webp" width="32" height="32" alt="Wiretok emblem" data-i18n-alt="brand.emblemAlt" class="brand-emblem shrink-0">
+          <h1 class="brand-name">Wiretok</h1>
+          <span class="chip chip-live" id="live-chip" role="status" aria-live="polite"><span class="dot"></span><span id="live-chip-text" data-i18n="live.connecting">Connecting</span></span>
+        </div>
+        <div class="brand-actions">
+          <button type="button" class="btn btn-primary" id="btn-sync"><i data-icon="refresh-cw"></i><span data-i18n="btn.syncNow">Sync Now</span></button>
+          <button type="button" class="btn" id="btn-toggle-sync" aria-pressed="false"><i data-icon="pause"></i><span id="sync-toggle-text" data-i18n="btn.pause">Pause</span></button>
+          <button type="button" class="btn" id="btn-mini-hud"><i data-icon="gauge"></i><span data-i18n="btn.miniHud">Mini-HUD</span></button>
+          <button type="button" class="btn" id="btn-lan-qr"><i data-icon="qr-code"></i><span data-i18n="btn.mobileQr">Mobile QR</span></button>
+          <a class="btn btn-ghost" id="btn-open-web" href="/" target="_blank" rel="noopener noreferrer"><i data-icon="external-link"></i><span data-i18n="btn.fullScreen">Full Screen</span></a>
+          <button type="button" class="btn" id="btn-model-sync"><i data-icon="database"></i><span data-i18n="btn.syncModels">Sync Models</span></button>
+          <button type="button" class="btn btn-ghost" id="btn-open-wizard"><i data-icon="sparkles"></i><span data-i18n="btn.setupGuide">Setup Guide</span></button>
+          <button type="button" class="btn btn-ghost filters-toggle" id="btn-filters" aria-expanded="false" aria-controls="filters"><i data-icon="filter"></i><span data-i18n="btn.filters">Filters</span><span class="chip-count tnum" id="filter-count-badge" hidden>0</span></button>
+        </div>
+      </div>
+
+      <div class="ctrl-strip" id="ctrl-strip">
+        <div class="ctrl-group">
+          <span class="ctrl-label" id="lbl-era" data-i18n="ctrl.era">Era</span>
+          <div class="seg" role="group" aria-labelledby="lbl-era" id="seg-era">
+            <button type="button" data-era="live" aria-pressed="true" data-i18n="ctrl.eraLive">Since Milestone (Live)</button>
+            <button type="button" data-era="all" aria-pressed="false" data-i18n="ctrl.eraAll">All History</button>
+          </div>
+          <span class="muted mono-sm tnum" id="milestone-note"></span>
+        </div>
+
+        <div class="ctrl-group">
+          <span class="ctrl-label" id="lbl-cur" data-i18n="ctrl.currency">Currency</span>
+          <div class="seg" role="group" aria-labelledby="lbl-cur" id="seg-cur">
+            <button type="button" data-cur="USD" aria-pressed="true">USD $</button>
+            <button type="button" data-cur="TRY" aria-pressed="false">TRY ₺</button>
+          </div>
+          <span class="muted mono-sm tnum" id="fx-note"></span>
+          <button type="button" class="btn btn-ghost" id="btn-privacy" aria-pressed="true"><i data-icon="eye-off"></i><span id="privacy-text" data-i18n="ctrl.privacyOn">Privacy: On</span></button>
+        </div>
+
+        <div class="ctrl-group">
+          <span class="ctrl-label" id="lbl-lang" data-i18n="ctrl.language">Lang</span>
+          <div class="seg seg-sm" role="group" aria-labelledby="lbl-lang" id="seg-lang">
+            <button type="button" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" data-lang="tr" aria-pressed="false">TR</button>
+          </div>
+          <span class="ctrl-label" id="lbl-density" data-i18n="ctrl.density">Scale</span>
+          <div class="seg seg-sm" role="group" aria-labelledby="lbl-density" id="seg-density">
+            <button type="button" data-density="auto" aria-pressed="true" data-i18n="ctrl.densityAuto">Auto</button>
+            <button type="button" data-density="compact" aria-pressed="false" data-i18n="ctrl.densityCompact">Compact</button>
+            <button type="button" data-density="normal" aria-pressed="false" data-i18n="ctrl.densityNormal">Normal</button>
+          </div>
+        </div>
+
+        <div class="ctrl-group filters" id="filters">
+          <span class="ctrl-label" id="lbl-filter" data-i18n="ctrl.filter">Filter</span>
+          <label class="pill-field"><span class="sr-only" data-i18n="ctrl.fromDate">Start date</span><i data-icon="calendar"></i><input type="date" id="f-from" aria-label="Start date" data-i18n-aria="ctrl.fromDate"></label>
+          <label class="pill-field"><span class="sr-only" data-i18n="ctrl.toDate">End date</span><i data-icon="calendar"></i><input type="date" id="f-to" aria-label="End date" data-i18n-aria="ctrl.toDate"></label>
+          <label class="pill-field"><span class="sr-only" data-i18n="ctrl.sourceTool">Source tool</span><i data-icon="route"></i>
+            <select id="f-source" aria-label="Source tool" data-i18n-aria="ctrl.sourceTool"><option value="">All sources</option></select></label>
+          <label class="pill-field"><span class="sr-only" data-i18n="ctrl.account">Account</span><i data-icon="users"></i>
+            <select id="f-account" aria-label="Account" data-i18n-aria="ctrl.account"><option value="">All accounts</option></select></label>
+          <button type="button" class="btn btn-ghost" id="btn-reset-filters"><i data-icon="x"></i><span data-i18n="btn.reset">Clear</span></button>
+        </div>
+      </div>
+
+      <div class="active-chips" id="active-chips" role="region" aria-label="Active filters" data-i18n-aria="chips.region"></div>
+
+      <section class="ctx" id="ctx" aria-labelledby="ctx-title">
+        <div class="ctx-head">
+          <h2 class="ctx-title" id="ctx-title"><i data-icon="activity"></i><span data-i18n="ctx.title">Active Context Pressure</span></h2>
+          <div class="ctx-head-actions">
+            <div class="ctx-chips" id="ctx-chips" role="tablist" aria-label="Active sessions" data-i18n-aria="ctx.activeSessionsAria"></div>
+            <button type="button" class="btn btn-sm btn-ghost" id="btn-recent-sessions" aria-expanded="false" aria-controls="ctx-recent-drawer" hidden><i data-icon="history"></i><span id="recent-sessions-label" class="tnum">Recent Sessions (0)</span></button>
+          </div>
+        </div>
+        <div class="ctx-body" id="ctx-body"></div>
+        <div class="ctx-recent" id="ctx-recent-drawer" hidden></div>
+      </section>
+
+    </div>
+  </header>
+
+  <div class="tabbar"><div class="wrap">
+      <nav class="tabs" role="tablist" aria-label="Panels" data-i18n-aria="tabs.aria" id="tabs">
+        <button type="button" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-tab="overview"><i data-icon="trending-up"></i><span data-i18n="tabs.overview">Overview &amp; Cost</span></button>
+        <button type="button" role="tab" id="tab-accounts" aria-controls="panel-accounts" aria-selected="false" tabindex="-1" data-tab="accounts"><i data-icon="users"></i><span data-i18n="tabs.accounts">Accounts</span></button>
+        <button type="button" role="tab" id="tab-requests" aria-controls="panel-requests" aria-selected="false" tabindex="-1" data-tab="requests"><i data-icon="list"></i><span data-i18n="tabs.requests">Requests</span></button>
+        <button type="button" role="tab" id="tab-forensics" aria-controls="panel-forensics" aria-selected="false" tabindex="-1" data-tab="forensics"><i data-icon="flask-conical"></i><span data-i18n="tabs.forensics">SSE &amp; Fingerprint</span></button>
+        <button type="button" role="tab" id="tab-models" aria-controls="panel-models" aria-selected="false" tabindex="-1" data-tab="models"><i data-icon="plug"></i><span data-i18n="tabs.models">Models &amp; Tools</span></button>
+      </nav>
+  </div></div>
+
+  <div class="banner" id="banner" role="alert" hidden></div>
+
+  <main class="wrap main" id="main" tabindex="-1">
+
+    <!-- ===================== OVERVIEW & COST ===================== -->
+    <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <h2 class="sr-only" data-i18n="tabs.overview">Overview &amp; Cost</h2>
+
+      <article class="card quick-guide min-w-0" id="quick-guide">
+        <header class="card-head">
+          <div class="guide-title"><i data-icon="info"></i><h3 data-i18n="guide.title">Quick Start (3 Easy Steps)</h3></div>
+          <div class="head-actions">
+            <button type="button" class="btn btn-sm" id="btn-guide-wizard"><i data-icon="sparkles"></i><span data-i18n="guide.openWizard">Open 4-Step Guide</span></button>
+            <button type="button" class="btn btn-sm btn-ghost" id="btn-hide-guide"><i data-icon="x"></i><span data-i18n="guide.hide">Got it, hide</span></button>
+          </div>
+        </header>
+        <div class="guide-grid">
+          <div class="guide-step min-w-0">
+            <span class="guide-num tnum">1</span>
+            <div class="min-w-0">
+              <h4 data-i18n="guide.s1Title">Auto or 1-Click Sync</h4>
+              <p data-i18n="guide.s1Body">Antigravity, OpenCode, Claude Code, and Codex logs are tracked locally. Use Pause / Resume above to control live polling.</p>
+            </div>
+          </div>
+          <div class="guide-step min-w-0">
+            <span class="guide-num tnum">2</span>
+            <div class="min-w-0">
+              <h4 data-i18n="guide.s2Title">Account &amp; Plan Setup</h4>
+              <p data-i18n="guide.s2Body">Pick API / Subscription / Free per account; Actual Paid cost and List Value Multiplier update immediately.</p>
+              <button type="button" class="btn btn-sm" data-action="goto-tab" data-tab="accounts"><i data-icon="users"></i><span data-i18n="guide.s2Btn">Open Accounts</span></button>
+            </div>
+          </div>
+          <div class="guide-step min-w-0">
+            <span class="guide-num tnum">3</span>
+            <div class="min-w-0">
+              <h4 data-i18n="guide.s3Title">Live Speed Test &amp; SSE Lab</h4>
+              <p data-i18n="guide.s3Body">Launch the local :19841 pass-through proxy in one click, benchmark live TTFT/TPOT, or inspect raw SSE wire frames.</p>
+              <button type="button" class="btn btn-sm" data-action="goto-tab" data-tab="forensics"><i data-icon="flask-conical"></i><span data-i18n="guide.s3Btn">Speed &amp; SSE Lab</span></button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="kpi-grid" id="kpi-grid" aria-live="polite"></div>
+
+      <div class="grid-split bento-main">
+        <article class="card min-w-0">
+          <header class="card-head">
+            <h3 data-i18n="chart.title">Daily Tokens &amp; Cost</h3>
+            <div class="seg seg-sm" role="group" aria-label="Chart metric" data-i18n-aria="chart.metricAria" id="seg-metric">
+              <button type="button" data-metric="tokens" aria-pressed="true" data-i18n="chart.tokens">Tokens</button>
+              <button type="button" data-metric="cost" aria-pressed="false" data-i18n="chart.cost">Cost</button>
+            </div>
+          </header>
+          <div class="chart" id="chart-daily"></div>
+          <ul class="legend" id="chart-legend"></ul>
+        </article>
+
+        <article class="card min-w-0">
+          <header class="card-head"><h3 data-i18n="breakdown.title">Model &amp; Source Breakdown</h3></header>
+          <div id="breakdown"></div>
+        </article>
+      </div>
+
+      <article class="card min-w-0 bento-full" id="heatmap-card">
+        <header class="card-head">
+          <div class="heat-title-group min-w-0">
+            <h3 data-i18n="heat.title">Activity Heatmap</h3>
+            <span class="muted mono-sm tnum" id="heat-note"></span>
+          </div>
+          <div class="head-actions heat-controls">
+            <div class="seg seg-sm" role="group" aria-label="Heatmap metric" data-i18n-aria="heat.metricAria" id="seg-heat-metric">
+              <button type="button" data-hmetric="tokens" aria-pressed="true" data-i18n="heat.tokens">Tokens</button>
+              <button type="button" data-hmetric="cost" aria-pressed="false" data-i18n="heat.cost">Cost</button>
+              <button type="button" data-hmetric="requests" aria-pressed="false" data-i18n="heat.requests">Requests</button>
+              <button type="button" data-hmetric="cache" aria-pressed="false" data-i18n="heat.cache">Cache %</button>
+            </div>
+            <div class="seg seg-sm" role="group" aria-label="Heatmap window" data-i18n-aria="heat.winAria" id="seg-heat-win">
+              <button type="button" data-hwin="15" aria-pressed="false" data-i18n="heat.w15">15W</button>
+              <button type="button" data-hwin="26" aria-pressed="false" data-i18n="heat.w26">6M</button>
+              <button type="button" data-hwin="53" aria-pressed="true" data-i18n="heat.w53">1Y</button>
+            </div>
+          </div>
+        </header>
+        <div class="heat-scroll" id="heatmap-scroll">
+          <div class="heat" id="heatmap"></div>
+        </div>
+      </article>
+
+      <article class="card min-w-0 bento-full" id="swarm-card">
+        <header class="card-head"><h3 data-i18n="tree.title">Swarm &amp; Subagent Cost Tree</h3><span class="muted mono-sm tnum" id="tree-note"></span></header>
+        <div class="tree" id="swarm-tree" role="region" tabindex="0" aria-label="Swarm cost tree" data-i18n-aria="tree.aria"></div>
+      </article>
+    </section>
+
+    <!-- ===================== ACCOUNTS ===================== -->
+    <section class="panel" id="panel-accounts" role="tabpanel" aria-labelledby="tab-accounts" hidden>
+      <h2 class="sr-only" data-i18n="acc.srTitle">Accounts and History Retagging</h2>
+      <article class="card">
+        <header class="card-head"><h3 data-i18n="acc.title">Per-Account Usage</h3><span class="muted mono-sm tnum" id="acc-note"></span></header>
+        <div class="tbl-wrap" id="acc-table" role="region" tabindex="0" aria-label="Accounts table" data-i18n-aria="acc.tableAria"></div>
+      </article>
+
+      <article class="card" id="retag-card">
+        <header class="card-head"><h3 data-i18n="retag.title">Assign History to Account</h3><span class="muted mono-sm" data-i18n="retag.sub">Bulk retagging</span></header>
+        <p class="lede" data-i18n="retag.lede">Attach pre-milestone or untagged requests matching a date range, workspace, or source to a target account. Only updates your local SQLite database.</p>
+        <form class="form-grid" id="retag-form" autocomplete="off">
+          <label class="field"><span data-i18n="retag.target">Target account</span><select id="rt-account" required></select></label>
+          <label class="field"><span data-i18n="retag.from">From</span><input type="date" id="rt-from"></label>
+          <label class="field"><span data-i18n="retag.to">To</span><input type="date" id="rt-to"></label>
+          <label class="field"><span data-i18n="retag.workspace">Workspace contains</span><input type="text" id="rt-workspace" placeholder="e.g. wiretok" data-i18n-placeholder="retag.workspacePh"></label>
+          <label class="field"><span data-i18n="retag.source">Source tool</span><select id="rt-source"><option value="">All</option></select></label>
+          <label class="field"><span data-i18n="retag.scope">Scope</span>
+            <select id="rt-scope">
+              <option value="pre_milestone" data-i18n="retag.scopePre">Pre-milestone only</option>
+              <option value="untagged" data-i18n="retag.scopeUntagged">Untagged only</option>
+              <option value="all" data-i18n="retag.scopeAll">All matching</option>
+            </select></label>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="rt-submit"><i data-icon="tag"></i><span data-i18n="retag.submit">Assign History</span></button>
+            <span class="muted" id="rt-result" role="status"></span>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <!-- ===================== REQUESTS ===================== -->
+    <section class="panel" id="panel-requests" role="tabpanel" aria-labelledby="tab-requests" hidden>
+      <h2 class="sr-only" data-i18n="req.srTitle">Requests and High-Cost Calls</h2>
+      <article class="card">
+        <header class="card-head"><h3 data-i18n="req.title">Request Log</h3><span class="muted mono-sm tnum" id="req-count"></span></header>
+        <div class="req-filters">
+          <label class="pill-field grow"><span class="sr-only" data-i18n="req.searchAria">Search requests</span><i data-icon="search"></i><input type="search" id="rq-q" placeholder="Search model, session, or workspace" data-i18n-placeholder="req.searchPh" aria-label="Search requests" data-i18n-aria="req.searchAria"></label>
+          <label class="pill-field"><span class="sr-only" data-i18n="req.colModel">Model</span><i data-icon="cpu"></i><select id="rq-model" aria-label="Model" data-i18n-aria="req.colModel"><option value="">All models</option></select></label>
+          <label class="pill-field"><span class="sr-only" data-i18n="req.sortAria">Sort requests</span><i data-icon="scale"></i>
+            <select id="rq-sort" aria-label="Sort requests" data-i18n-aria="req.sortAria">
+              <option value="created_at:desc" data-i18n="req.sortNewest">Newest first</option>
+              <option value="created_at:asc" data-i18n="req.sortOldest">Oldest first</option>
+              <option value="api_list_cost_usd:desc" data-i18n="req.sortExpensive">Highest cost</option>
+              <option value="context_pct:desc" data-i18n="req.sortCtx">Highest Context %</option>
+              <option value="ttft_ms:desc" data-i18n="req.sortTtft">Highest TTFT</option>
+              <option value="tokens_per_sec:desc" data-i18n="req.sortTps">Highest tok/s</option>
+            </select></label>
+          <button type="button" class="btn" id="rq-expensive" aria-pressed="false"><i data-icon="flame"></i><span data-i18n="req.expensiveBtn">Most Expensive Requests</span></button>
+        </div>
+        <div class="tbl-wrap" id="req-table" role="region" tabindex="0" aria-label="Requests table" data-i18n-aria="req.tableAria"></div>
+        <footer class="pager">
+          <button type="button" class="btn btn-ghost" id="rq-prev" data-i18n="btn.prev">Previous</button>
+          <span class="muted tnum" id="rq-page"></span>
+          <button type="button" class="btn btn-ghost" id="rq-next" data-i18n="btn.next">Next</button>
+        </footer>
+      </article>
+    </section>
+
+    <!-- ===================== SSE & FINGERPRINT ===================== -->
+    <section class="panel" id="panel-forensics" role="tabpanel" aria-labelledby="tab-forensics" hidden>
+      <h2 class="sr-only" data-i18n="for.srTitle">SSE &amp; Model Fingerprint Lab</h2>
+
+      <div class="bento-forensics">
+        <article class="card min-w-0" id="tee-card">
+          <header class="card-head">
+            <div class="guide-title"><i data-icon="radio"></i><h3 data-i18n="for.teeTitle">Live Stream Capture (Local Proxy :19841)</h3></div>
+            <span class="badge" id="tee-badge"><span data-i18n="for.teeOff">Stopped</span></span>
+          </header>
+          <p class="lede" data-i18n="for.teeLede">Start a transparent local pass-through proxy in one click. Point any OpenAI/Anthropic client at http://127.0.0.1:19841/v1 to log TTFT, tok/s, and wire fingerprints automatically.</p>
+          <div class="form-grid" id="tee-controls">
+            <label class="field"><span data-i18n="for.teePreset">Provider preset</span>
+              <select id="tee-preset">
+                <option value="https://api.openai.com/v1">OpenAI (api.openai.com/v1)</option>
+                <option value="https://api.anthropic.com">Anthropic (api.anthropic.com)</option>
+                <option value="https://openrouter.ai/api/v1">OpenRouter (openrouter.ai/api/v1)</option>
+                <option value="http://127.0.0.1:20128/v1">OmniRoute Local (127.0.0.1:20128/v1)</option>
+                <option value="custom" data-i18n="for.teeCustom">Custom Upstream URL…</option>
+              </select>
+            </label>
+            <label class="field"><span data-i18n="for.teeUpstream">Target Upstream URL</span><input type="url" id="tee-upstream" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1"></label>
+            <label class="field"><span data-i18n="for.teePort">Local Port</span><input type="number" id="tee-port" min="1024" max="65535" value="19841" inputmode="numeric" class="tnum"></label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" id="tee-toggle" aria-pressed="false"><i data-icon="play"></i><span id="tee-toggle-text" data-i18n="for.teeStart">Start Proxy</span></button>
+            <button type="button" class="btn" id="tee-copy" data-action="copy" data-copy="http://127.0.0.1:19841/v1"><i data-icon="copy"></i><span data-i18n="for.teeCopy">Copy Proxy URL</span></button>
+            <span class="muted mono-sm tnum" id="tee-stats" role="status"></span>
+          </div>
+        </article>
+
+        <article class="card min-w-0" id="speedtest-card">
+          <header class="card-head">
+            <div class="guide-title"><i data-icon="zap"></i><h3 data-i18n="for.speedTitle">Live Speed Benchmark (TTFT / TPOT / tok/s)</h3></div>
+            <span class="muted mono-sm" data-i18n="for.speedNote">Ephemeral key · never saved</span>
+          </header>
+          <form class="form-grid form-grid-1" id="speedtest-form" autocomplete="off">
+            <div class="form-row">
+              <label class="field"><span data-i18n="for.speedPreset">Provider preset</span>
+                <select id="sp-preset">
+                  <option value="omniroute">OmniRoute (127.0.0.1:20128)</option>
+                  <option value="9router">9Router (127.0.0.1:20129)</option>
+                  <option value="openrouter">OpenRouter</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="custom" data-i18n="for.teeCustom">Custom URL…</option>
+                </select>
+              </label>
+              <label class="field"><span data-i18n="for.speedMode">Endpoint mode</span>
+                <select id="sp-mode">
+                  <option value="chat_completions">/v1/chat/completions</option>
+                  <option value="responses">/v1/responses</option>
+                  <option value="messages">/v1/messages</option>
+                </select>
+              </label>
+            </div>
+            <label class="field"><span data-i18n="for.speedBase">Base URL</span><input type="url" id="sp-url" value="http://127.0.0.1:20128/v1" placeholder="http://127.0.0.1:20128/v1" required></label>
+            <div class="form-row">
+              <label class="field"><span data-i18n="for.speedModel">Model</span><input type="text" id="sp-model" value="gemini-4-hydrogen" placeholder="gemini-4-hydrogen" required></label>
+              <label class="field"><span data-i18n="for.speedRuns">Runs (1–3)</span><input type="number" id="sp-runs" min="1" max="3" value="2" inputmode="numeric" class="tnum"></label>
+            </div>
+            <label class="field"><span data-i18n="for.speedKey">API Key (ephemeral)</span><input type="password" id="sp-key" autocomplete="off" placeholder="sk-... (optional for local routers)" data-i18n-placeholder="for.speedKeyPh"></label>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="sp-submit"><i data-icon="zap"></i><span data-i18n="for.speedStart">Run Speed Test</span></button>
+              <span class="muted mono-sm" id="sp-status" role="status"></span>
+            </div>
+          </form>
+          <div id="speedtest-result"></div>
+        </article>
+
+        <article class="card min-w-0" id="probe-card">
+          <header class="card-head"><h3 data-i18n="for.probeTitle">Live Endpoint Fingerprint Probe</h3><span class="muted mono-sm" data-i18n="for.probeNote">API key is never persisted</span></header>
+          <form class="form-grid form-grid-1" id="probe-form" autocomplete="off">
+            <label class="field"><span data-i18n="for.speedBase">Base URL</span><input type="url" id="pb-url" placeholder="https://api.example.com/v1" required></label>
+            <label class="field"><span data-i18n="for.probeKey">API Key</span><input type="password" id="pb-key" autocomplete="off" placeholder="sk-..."></label>
+            <div class="form-row">
+              <label class="field"><span data-i18n="for.speedMode">Endpoint mode</span>
+                <select id="pb-mode"><option value="responses">/v1/responses</option><option value="messages">/v1/messages</option><option value="chat_completions">/v1/chat/completions</option></select></label>
+              <label class="field"><span data-i18n="for.speedModel">Model</span><input type="text" id="pb-model" placeholder="gpt-6-astra" required></label>
+            </div>
+            <label class="field"><span data-i18n="for.probePrompt">Probe prompt</span><textarea id="pb-prompt" rows="2">State your model name and knowledge cutoff date in one line.</textarea></label>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="pb-submit"><i data-icon="radio"></i><span data-i18n="for.probeSubmit">Run Probe</span></button>
+              <span class="muted" id="pb-status" role="status"></span>
+            </div>
+          </form>
+          <div id="probe-result"></div>
+        </article>
+      </div>
+
+      <div class="grid-split grid-split-even">
+        <article class="card min-w-0">
+          <header class="card-head"><h3 data-i18n="for.rawTitle">Raw SSE Inspector</h3></header>
+          <div class="field">
+            <span id="lbl-mode" data-i18n="for.speedMode">Endpoint mode</span>
+            <div class="seg seg-wrap" role="group" aria-labelledby="lbl-mode" id="seg-mode">
+              <button type="button" data-mode="auto" aria-pressed="true" data-i18n="for.modeAuto">Auto</button>
+              <button type="button" data-mode="responses" aria-pressed="false">/v1/responses</button>
+              <button type="button" data-mode="messages" aria-pressed="false">/v1/messages</button>
+              <button type="button" data-mode="chat_completions" aria-pressed="false">/v1/chat/completions</button>
+              <button type="button" data-mode="gemini" aria-pressed="false">Gemini</button>
+            </div>
+          </div>
+          <label class="field"><span data-i18n="for.rawLabel">Raw SSE stream</span>
+            <textarea id="sse-raw" rows="8" spellcheck="false" placeholder="event: response.created&#10;data: {&quot;type&quot;:&quot;response.created&quot;, ...}"></textarea></label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" id="sse-analyze"><i data-icon="play"></i><span data-i18n="for.analyze">Analyze SSE</span></button>
+            <button type="button" class="btn" id="sse-sample"><i data-icon="upload"></i><span data-i18n="for.loadSample">Load Sample (gpt-6-astra)</span></button>
+            <label class="check"><input type="checkbox" id="sse-save"><span data-i18n="for.saveHistory">Save analysis to history</span></label>
+          </div>
+        </article>
+
+        <article class="card min-w-0">
+          <header class="card-head"><h3 data-i18n="for.resultTitle">Inspection Result</h3></header>
+          <div id="sse-result"><p class="empty" data-i18n="for.resultEmpty">No analysis yet. Paste a raw SSE stream or load the sample.</p></div>
+        </article>
+      </div>
+
+      <article class="card min-w-0">
+        <header class="card-head"><h3 data-i18n="for.historyTitle">Fingerprint History</h3><button type="button" class="btn btn-ghost" id="fh-refresh" aria-label="Refresh history" data-i18n-aria="for.historyRefreshAria"><i data-icon="refresh-cw"></i></button></header>
+        <div class="tbl-wrap" id="forensic-history" role="region" tabindex="0" aria-label="Fingerprint history table" data-i18n-aria="for.historyAria"></div>
+      </article>
+    </section>
+
+    <!-- ===================== MODELS & TOOLS ===================== -->
+    <section class="panel" id="panel-models" role="tabpanel" aria-labelledby="tab-models" hidden>
+      <h2 class="sr-only" data-i18n="mod.srTitle">Models &amp; Integrations</h2>
+      <article class="card">
+        <header class="card-head">
+          <h3 data-i18n="mod.title">Model Pricing Catalog</h3>
+          <div class="head-actions">
+            <label class="pill-field"><span class="sr-only" data-i18n="mod.searchAria">Search models</span><i data-icon="search"></i><input type="search" id="md-q" placeholder="Search models" data-i18n-placeholder="mod.searchPh" aria-label="Search models" data-i18n-aria="mod.searchAria"></label>
+            <button type="button" class="btn" id="md-sync"><i data-icon="database"></i><span data-i18n="btn.syncModels">Sync Models</span></button>
+          </div>
+        </header>
+        <p class="lede" data-i18n="mod.lede">Prices are USD per 1M tokens. Manually edited rows are marked Custom and preserved across live model syncs.</p>
+        <div class="tbl-wrap" id="model-table" role="region" tabindex="0" aria-label="Model pricing table" data-i18n-aria="mod.tableAria"></div>
+        <footer class="pager">
+          <button type="button" class="btn btn-ghost" id="md-prev" data-i18n="btn.prev">Previous</button>
+          <span class="muted tnum" id="md-page"></span>
+          <button type="button" class="btn btn-ghost" id="md-next" data-i18n="btn.next">Next</button>
+        </footer>
+      </article>
+
+      <div class="grid-split grid-split-even">
+        <article class="card min-w-0">
+          <header class="card-head"><h3 data-i18n="int.title">Integrations</h3></header>
+          <div class="int-grid" id="int-grid"></div>
+        </article>
+        <div class="vstack min-w-0">
+          <article class="card">
+            <header class="card-head"><h3 data-i18n="exp.title">Export</h3></header>
+            <p class="lede" data-i18n="exp.lede">Download filtered requests locally.</p>
+            <div class="form-actions">
+              <a class="btn" id="exp-csv" href="/api/export?format=csv" download><i data-icon="download"></i><span data-i18n="exp.csv">Download CSV</span></a>
+              <a class="btn" id="exp-json" href="/api/export?format=json" download><i data-icon="download"></i><span data-i18n="exp.json">Download JSON</span></a>
+            </div>
+          </article>
+          <article class="card">
+            <header class="card-head"><h3 data-i18n="set.title">FX Rate &amp; Milestone</h3></header>
+            <form class="form-grid form-grid-1" id="settings-form" autocomplete="off">
+              <label class="field"><span data-i18n="set.fx">USD/TRY exchange rate</span><input type="number" step="0.01" min="0" id="st-fx" inputmode="decimal" class="tnum"></label>
+              <label class="field"><span data-i18n="set.milestone">Milestone timestamp (ISO)</span><input type="text" id="st-milestone" placeholder="2026-11-18T18:49:00Z"></label>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i data-icon="save"></i><span data-i18n="set.save">Save Settings</span></button>
+                <span class="muted" id="st-result" role="status"></span>
+              </div>
+            </form>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <div class="foot-left">
+      <span class="muted mono-sm"><span data-i18n="foot.localData">Wiretok v0.2 · local data · </span><span id="foot-origin" class="tnum">localhost</span></span>
+      <button type="button" class="btn btn-sm btn-ghost" id="btn-show-guide"><i data-icon="info"></i><span data-i18n="btn.setupGuide">Setup Guide</span></button>
+    </div>
+    <span class="muted mono-sm tnum" id="foot-updated"></span>
+  </footer>
+
+  <!-- ===================== <520px 5-TAB MOBILE BOTTOM NAV ===================== -->
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" data-i18n-aria="mob.aria">
+    <button type="button" class="mob-tab" data-action="goto-tab" data-tab="overview" aria-current="page"><i data-icon="trending-up"></i><span data-i18n="mob.overview">Overview</span></button>
+    <button type="button" class="mob-tab" data-action="goto-tab" data-tab="accounts"><i data-icon="users"></i><span data-i18n="mob.accounts">Accounts</span></button>
+    <button type="button" class="mob-tab" data-action="goto-tab" data-tab="requests"><i data-icon="list"></i><span data-i18n="mob.requests">Requests</span></button>
+    <button type="button" class="mob-tab" data-action="goto-tab" data-tab="forensics"><i data-icon="flask-conical"></i><span data-i18n="mob.forensics">Forensics</span></button>
+    <button type="button" class="mob-tab" data-action="goto-tab" data-tab="models"><i data-icon="plug"></i><span data-i18n="mob.models">Models</span></button>
+  </nav>
+</div>
+
+<!-- ===================== SHARED GPU HEATMAP RICH TOOLTIP ===================== -->
+<div class="heat-pop" id="heat-pop" role="tooltip" hidden></div>
+
+<!-- ===================== 4-STEP SETUP WIZARD DIALOG ===================== -->
+<dialog class="modal" id="setup-wizard" aria-labelledby="wiz-title">
+  <div class="modal-box">
+    <header class="modal-head">
+      <div class="brand min-w-0">
+        <img src="/assets/emblem.webp" width="40" height="40" alt="Wiretok emblem" data-i18n-alt="brand.emblemAlt" class="brand-emblem shrink-0">
+        <div class="min-w-0">
+          <h2 id="wiz-title" class="modal-title" data-i18n="wiz.title">Wiretok v0.2 Setup Guide</h2>
+          <p class="muted mono-sm tnum" id="wiz-step-indicator">Step 1 / 4</p>
+        </div>
+      </div>
+      <button type="button" class="btn btn-sm btn-ghost" id="wiz-close" aria-label="Close" data-i18n-aria="btn.close"><i data-icon="x"></i><span data-i18n="btn.close">Close</span></button>
+    </header>
+
+    <div class="wiz-progress" role="progressbar" aria-label="Setup guide progress" data-i18n-aria="wiz.ariaProg" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" id="wiz-progress">
+      <span class="wiz-dot is-active" data-wstep="1" data-i18n="wiz.d1">1. Local Tools</span>
+      <span class="wiz-dot" data-wstep="2" data-i18n="wiz.d2">2. Privacy &amp; Era</span>
+      <span class="wiz-dot" data-wstep="3" data-i18n="wiz.d3">3. Billing Plans</span>
+      <span class="wiz-dot" data-wstep="4" data-i18n="wiz.d4">4. HUD &amp; Mobile QR</span>
+    </div>
+
+    <div class="wiz-body" id="wiz-body">
+      <section class="wiz-step" data-step="1">
+        <div class="wiz-hero">
+          <img src="/assets/empty-telemetry.webp" width="160" height="120" alt="Local telemetry sources" loading="lazy" decoding="async" class="wiz-img shrink-0">
+          <div class="min-w-0">
+            <h3 data-i18n="wiz.s1Title">1. Local Tools &amp; 1-Click Sync</h3>
+            <p data-i18n="wiz.s1Body">Wiretok scans Antigravity 2.0, OmniRoute, 9Router, Claude Code, Codex, and OpenCode locally without ever reading OAuth tokens, cookies, or credentials.</p>
+            <div class="form-actions">
+              <button type="button" class="btn btn-primary" id="wiz-btn-sync"><i data-icon="refresh-cw"></i><span data-i18n="btn.syncNow">Sync Now</span></button>
+              <span class="muted mono-sm tnum" id="wiz-sync-status"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wiz-step" data-step="2" hidden>
+        <h3 data-i18n="wiz.s2Title">2. Privacy Mask &amp; Era Filter</h3>
+        <p data-i18n="wiz.s2Body1">Email addresses (a***e@example.com) and user home paths are masked by default for safe screen sharing. Toggle Privacy: On/Off in the top bar anytime.</p>
+        <p data-i18n="wiz.s2Body2">Since Milestone (Live) tracks fresh sessions after setup; All History includes historical archives.</p>
+        <div class="form-actions">
+          <button type="button" class="btn" id="wiz-btn-privacy"><i data-icon="eye-off"></i><span id="wiz-privacy-label" data-i18n="ctrl.privacyMaskOn">Privacy Mask: On</span></button>
+        </div>
+      </section>
+
+      <section class="wiz-step" data-step="3" hidden>
+        <h3 data-i18n="wiz.s3Title">3. Account Billing (API $0 vs Subscription)</h3>
+        <p data-i18n="wiz.s3Body1">Auto-discovered accounts start on API ($0 fixed fee) so no fake monthly subscription charges inflate your totals.</p>
+        <p data-i18n="wiz.s3Body2">Switch any account with 1 click (API | Sub | Free) on the Accounts tab to compare API List Value, Actual Paid, and List Value Multiplier accurately.</p>
+      </section>
+
+      <section class="wiz-step" data-step="4" hidden>
+        <h3 data-i18n="wiz.s4Title">4. Turbo Mini-HUD, Sidecar &amp; Mobile LAN QR</h3>
+        <p data-i18n="wiz.s4Body1">Mini-HUD opens a compact 340×112 always-on-top capsule showing live context %, tokens remaining before /compact, tok/s, and 1-click /compact copy.</p>
+        <p data-i18n="wiz.s4Body2">Mobile QR opens an opt-in 6-digit PIN protected read-only view on your local Wi-Fi.</p>
+        <div class="form-actions">
+          <button type="button" class="btn" id="wiz-btn-hud"><i data-icon="gauge"></i><span data-i18n="wiz.openHud">Open Mini-HUD</span></button>
+          <button type="button" class="btn" id="wiz-btn-lan"><i data-icon="qr-code"></i><span data-i18n="wiz.showQr">Show Mobile QR</span></button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-ghost" id="wiz-prev" disabled data-i18n="btn.prev">Previous</button>
+      <div class="head-actions">
+        <button type="button" class="btn btn-primary" id="wiz-next" data-i18n="btn.nextStep">Next Step</button>
+        <button type="button" class="btn btn-primary" id="wiz-done" hidden><i data-icon="check"></i><span data-i18n="btn.finish">Finish &amp; Start</span></button>
+      </div>
+    </footer>
+  </div>
+</dialog>
+
+<!-- ===================== MOBILE LAN QR PAIRING DIALOG ===================== -->
+<dialog class="modal" id="lan-dialog" aria-labelledby="lan-title">
+  <div class="modal-box">
+    <header class="modal-head">
+      <div class="guide-title"><i data-icon="smartphone"></i><h2 id="lan-title" class="modal-title" data-i18n="lan.title">Mobile LAN QR Pairing (PIN Protected)</h2></div>
+      <button type="button" class="btn btn-sm btn-ghost" id="lan-close" aria-label="Close" data-i18n-aria="btn.close"><i data-icon="x"></i><span data-i18n="btn.close">Close</span></button>
+    </header>
+    <p class="lede" data-i18n="lan.lede">Read-only live dashboard access from your phone over local Wi-Fi/LAN. All write, proxy, and integration endpoints stay locked to localhost and privacy masking is enforced.</p>
+    <div class="lan-body" id="lan-body">
+      <div class="lan-qr-box" id="lan-qr-box" aria-label="LAN pairing QR code" data-i18n-aria="lan.qrAria"></div>
+      <div class="lan-meta">
+        <div><span class="ctrl-label" data-i18n="lan.status">Status</span><div><span class="badge" id="lan-status-badge"><span data-i18n="lan.off">Disabled</span></span></div></div>
+        <div><span class="ctrl-label" data-i18n="lan.pinLabel">6-Digit Access PIN</span><div class="lan-pin tnum" id="lan-pin-code">——————</div></div>
+        <div><span class="ctrl-label" data-i18n="lan.urlLabel">Local Network URL (LAN)</span><div class="mono-sm tnum" id="lan-url-text">—</div></div>
+        <div><span class="ctrl-label" data-i18n="lan.pairedLabel">Paired Devices</span><div class="mono-sm tnum" id="lan-paired-count">0 devices</div></div>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-danger" id="lan-disable" hidden><i data-icon="square"></i><span data-i18n="lan.disable">Disable LAN Access</span></button>
+      <button type="button" class="btn btn-primary" id="lan-enable"><i data-icon="qr-code"></i><span data-i18n="lan.enable">Generate LAN QR &amp; PIN</span></button>
+    </footer>
+  </div>
+</dialog>
+
+<!-- ===================== NON-LOOPBACK 6-DIGIT PIN UNLOCK DIALOG ===================== -->
+<dialog class="modal" id="pin-dialog" aria-labelledby="pin-title">
+  <div class="modal-box">
+    <header class="modal-head">
+      <div class="guide-title"><i data-icon="lock"></i><h2 id="pin-title" class="modal-title" data-i18n="pin.title">Wiretok LAN PIN Verification</h2></div>
+    </header>
+    <p class="lede" data-i18n="pin.lede">Enter the 6-digit numeric PIN shown in the Mobile QR dialog on your desktop Wiretok console.</p>
+    <form class="form-grid form-grid-1" id="pin-form" autocomplete="off">
+      <label class="field"><span data-i18n="pin.label">6-Digit PIN Code</span>
+        <input type="text" id="pin-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" class="pin-field tnum" required>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="pin-submit"><i data-icon="shield-check"></i><span data-i18n="pin.submit">Verify &amp; Connect</span></button>
+        <span class="muted mono-sm" id="pin-status" role="status"></span>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script src="icons.js"></script>
+<script src="i18n.js"></script>
+<script src="sample-sse.js"></script>
+<script src="app.js" defer></script>
+</body>
+</html>

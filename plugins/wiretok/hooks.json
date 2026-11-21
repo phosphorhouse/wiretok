@@ -1,0 +1,32 @@
+{
+  "wiretok-telemetry": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node --no-warnings ./hooks/capture.mjs",
+        "timeout": 5
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node --no-warnings ./hooks/capture.mjs",
+        "timeout": 3
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "node --no-warnings ./hooks/capture.mjs",
+        "timeout": 5
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node --no-warnings ./hooks/capture.mjs",
+        "timeout": 5
+      }
+    ]
+  }
+}

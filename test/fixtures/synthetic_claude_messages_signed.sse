@@ -1,0 +1,51 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_01XFDUDYJgAACzvnptvVoYEL","type":"message","role":"assistant","model":"claude-sonnet-5-5","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":412,"cache_creation_input_tokens":2048,"cache_read_input_tokens":10240,"cache_creation":{"ephemeral_5m_input_tokens":2048,"ephemeral_1h_input_tokens":0},"output_tokens":1,"service_tier":"standard"}}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"The user asks which model"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":" I am. I should answer"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":" from my system identity."}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"alCxIgDD4M4egOXjAwFPOI+l8YqjqSMisgx/WleqkfEHaT5Jsdfu+qfXiyZKXdqDhulzNUfz4xq6BPdNmbGHb1AUBVX2H2qOvgwJGCyoH+b5SmiZXm317oZMARxmSd21a8mBqMmlf2vvk7s6DHZyElO9RAymoFGDdJzcjDpK450CmkGk5pfZLEf3kHpRgrKkTyxV8b925ZJJI6/EMDICC36PQrbJsTHQDqymP8Qs5445NDjkeJYJYU8d9WDA0HB7PAmal9IQkVjXibcChnaT6NBPAEiOY3UcU26idmSkq5V82D48k9ZXe0/PJtgqZsOQ2RQV5dsFYb6fJNFxSNbVNArtK6+Jyp2zsDibzhleN79l1D09ZON6KEppsSg7Z30D+4fw9GkApYCirb0AlO+KyrVdLpupvaIoEM/F3octycsHxjYO0kwh7jOu49NuBFgKtzn9U1cijXwz9bL0pFgbDu+YziOkqwaRP+nXE4N32zeAPs0cIQHaxUjbz1lSWt2V"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"- Anthropic\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"- Claude\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"- Claude 3.5 Sonnet\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"- Messages API\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"- Knowledge cutoff: 2024-04"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":87}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
