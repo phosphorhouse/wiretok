@@ -34,9 +34,9 @@ No cloud sync. No binary patches. Zero npm runtime packages.
 </p>
 
 <p align="center">
-  <img src="./docs/assets/wiretok-demo.gif" alt="Wiretok 9-second walkthrough showing context headroom, spend history, and wire-level SSE model check" width="100%" />
+  <img src="./docs/assets/wiretok-demo.gif" alt="Wiretok walkthrough showing context headroom, spend history, and wire-level SSE model check" width="100%" />
   <br />
-  <sub>9-second walkthrough: context headroom, spend &amp; cache history, and SSE wire check (<a href="./docs/assets/wiretok-demo.mp4">MP4 with audio</a>).</sub>
+  <sub>Walkthrough: context headroom, spend &amp; cache history, and SSE wire check (<a href="./docs/assets/wiretok-demo.mp4">MP4 with audio</a>).</sub>
 </p>
 
 ---
